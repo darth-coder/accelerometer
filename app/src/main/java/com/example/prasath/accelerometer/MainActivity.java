@@ -8,7 +8,11 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class MainActivity extends Activity implements SensorEventListener {
@@ -22,18 +26,28 @@ public class MainActivity extends Activity implements SensorEventListener {
     static int jerkcount=0;
     static float jerk=0;
     static float[] weights = new float[3];
-
+    static float firstorder=0;
+    static float min, max;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         acc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        sm.registerListener(this, acc, SensorManager.SENSOR_DELAY_NORMAL);
+        sm.registerListener(this, acc, 100000);
 
         acceleration=(TextView)findViewById(R.id.acceleration);
 
-
+        Button tweak = (Button) findViewById(R.id.button);
+        tweak.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                   EditText mEdit = (EditText) findViewById(R.id.editText);
+                   min = Float.valueOf(mEdit.getText().toString());
+                   mEdit = (EditText) findViewById(R.id.editText2);
+                   max = Float.valueOf(mEdit.getText().toString());
+                   jerkcount=0;
+            }
+        });
     }
 
 
@@ -69,6 +83,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     }
 
+    public int getCount(){
+        return jerkcount;
+    }
+
     public void onSensorChanged(SensorEvent event){
         jerk = 0;
 
@@ -78,12 +96,30 @@ public class MainActivity extends Activity implements SensorEventListener {
             previous[i] = event.values[i];
 
         }
-        if(jerk>5000)
-            jerkcount++;
+        if(jerk>max) {
+            //jerkcount++;
+            //Toast toast = Toast.makeText(getApplicationContext(), "Jerk magnitude : " + jerk, Toast.LENGTH_LONG);
+            //toast.show();
+            if(firstorder < 3000){
+                firstorder=jerk;
+                jerkcount++;
+                // call
+            }
+            else{
+                firstorder+=min;
+            }
+        }
         else{
             for(int i=0; i<3; i++)
                 weights[i] = event.values[i];
+            firstorder/=2;
+
         }
-        acceleration.setText("\n" + jerk + "\n" + (jerkcount/3) + "\n" + event.values[0] + "\n " + event.values[1] + "\n " + event.values[2]);
+
+        if(firstorder<min){
+            firstorder = 0;
+            //jerk = 0;
+        }
+        acceleration.setText("\n" + firstorder+"\n" + jerk +  "\n" + (jerkcount) + "\n" + event.values[0] + "\n " + event.values[1] + "\n " + event.values[2]);
     }
 }
