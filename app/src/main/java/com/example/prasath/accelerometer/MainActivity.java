@@ -24,13 +24,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     static float[] previous = new float[3];
     static float[] delta = new float[3];
-    static int jerkcount=0;
+    public static int jerkcount=0;
     static float jerk=0;
     static float[] weights = new float[3];
     static float firstorder=0;
     static float min, max;
     public static float potholemag =0;
-    static float roadmag=0;
+    public static float roadmag=0;
     static float growth=0;
     static float decay=1;
     static boolean gyroPresent=true;

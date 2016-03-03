@@ -17,8 +17,9 @@ public class Sampler extends Thread {
             //Toast toast = Toast.makeText(MainActivity.c, "Sampled value: " + MainActivity.potholemag, Toast.LENGTH_LONG);
             //toast.show();
             MainActivity.fromSampler = MainActivity.potholemag;
+            MainActivity.potholemag=0;
             try {
-                this.sleep(2000);
+                this.sleep(5000);
             }
             catch(Exception e){
 
