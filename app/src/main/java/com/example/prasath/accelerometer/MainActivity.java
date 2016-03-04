@@ -14,6 +14,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.microsoft.windowsazure.mobileservices.*;
+import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
+import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
 
 
 public class MainActivity extends Activity implements SensorEventListener {
@@ -21,6 +24,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     Sensor acc;
     SensorManager sm;
     TextView acceleration;
+    private MobileServiceClient mClient;
 
     static float[] previous = new float[3];
     static float[] delta = new float[3];
@@ -42,16 +46,30 @@ public class MainActivity extends Activity implements SensorEventListener {
     protected void onCreate(Bundle savedInstanceState) {
         c = getApplicationContext();
 
+        try {
+            mClient = new MobileServiceClient(
+                    "https://plotholesmobile.azurewebsites.net",
+                    this
+            );
+        }
+        catch(Exception e){
+
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         acc = sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         gyroPresent = true;
-        if(!sm.registerListener(this, acc, 100000)){
+        /*if(!sm.registerListener(this, acc, 100000)){
             acc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             sm.registerListener(this, acc, 100000);
             gyroPresent=false;
-        }
+        }*/
+
+        acc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sm.registerListener(this, acc, 100000);
+        gyroPresent=false;
 
         acceleration=(TextView)findViewById(R.id.acceleration);
 
@@ -75,7 +93,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
         });
 
-        roadSampler = new Sampler();
+        roadSampler = new Sampler(this);
         roadSampler.start();
     }
 
@@ -225,6 +243,26 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     public void getLocation(){
 
+    }
+
+    public void databaseOperation(){
+        //Toast toast = Toast.makeText(getApplicationContext(), "In dbop", Toast.LENGTH_LONG);
+        //toast.show();
+        final TodoItem item = new TodoItem();
+        item.Text = "Awesome item";
+        mClient.getTable(TodoItem.class).insert(item, new TableOperationCallback<TodoItem>() {
+            public void onCompleted(TodoItem entity, Exception exception, ServiceFilterResponse response) {
+                if (exception == null) {
+                    // Insert succeeded
+                    //Toast toast = Toast.makeText(getApplicationContext(), "Insertion succeeded", Toast.LENGTH_LONG);
+                    //toast.show();
+                } else {
+                    // Insert failed
+                    //Toast toast = Toast.makeText(getApplicationContext(), "Insertion failed", Toast.LENGTH_LONG);
+                    //toast.show();
+                }
+            }
+        });
     }
 
 
